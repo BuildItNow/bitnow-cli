@@ -1,0 +1,145 @@
+#!/usr/bin/env node
+
+var program  = require("commander");
+var chalk    = require("chalk");
+var ejs      = require("ejs");
+
+var fs       = require("fs");
+var path     = require("path");
+
+var fsUtil   = require("../lib/fsUtil");
+var cpUtil   = require("../lib/cpUtil");
+
+// usage
+program.usage("<view-path> [template-name]")
+    .option("-f, --force", "force to create view even has exists")
+    .option("-i, --rootid <value>", "id of root element")
+
+
+// help
+program.on("--help", function()
+{
+    console.log("");
+    console.log("  Examples:");
+    console.log("");
+    console.log(chalk.gray("    # Create a new view as \"index\" from defult template \"navi\""));
+    console.log("    $ bitnow-view create index");
+    console.log("");
+    console.log(chalk.gray("    # Create a new view as \"index\" from template named \"page\""));
+    console.log("    $ bitnow-view create index page");
+    console.log("");
+    console.log(chalk.gray("    # Create a new view as \"index\" from defult template, and set the \"indexView\" as the id of root element"));
+    console.log("    $ bitnow-view create index -i indexView");
+    console.log("");
+});
+
+program.parse(process.argv);
+
+var args = program.args;
+
+if(args.length == 0)
+{
+    program.help();
+
+    return ;
+}
+
+var viewPath = path.resolve(args[0]);
+var template = args[1] || "navi";
+
+var htmlPath = viewPath+".html";
+var jsPath   = viewPath+".js";
+
+if(!program.force && (fs.existsSync(htmlPath) || fs.existsSync(jsPath)))
+{
+    console.log(chalk.red("File exists, create view fail"));
+
+    return ;
+}
+
+
+var templateRootPath = path.resolve(path.join(__dirname, "../template/view"));
+var templatePath = path.join(templateRootPath, template);
+
+if(!fs.existsSync(templatePath))
+{
+    console.log(chalk.red("Template not found, create view fail"));
+
+    return ;
+}
+
+var rootid = program.rootid || path.basename(viewPath);
+var date   = new Date();   
+// var navititle = program.navititle || "text:TODO";
+// var navileft  = program.navileft || true;
+// var naviright = program.naviright || false;
+
+// if(navititle === "false")
+// {
+//     navititle = "hide:true";
+// }
+// else if(typeof navititle === "string" && !navititle.startsWith("text"))
+// {
+//     navititle = "text:"+navititle;
+// }
+
+// if(navileft === "false")
+// {
+//     navileft = "hide:true";
+// }
+// else if(typeof navileft === "string" && !navileft.startsWith("text") && !navileft.startsWith("image"))
+// {
+//     navileft = "text:"+navileft;
+// }
+
+// if(naviright === "false")
+// {
+//     naviright = "hide:true";
+// }
+// else if(typeof naviright === "string" && !naviright.startsWith("text") && !naviright.startsWith("image"))
+// {
+//     naviright = "text:"+naviright;
+// }
+
+fsUtil.mkdirSync(path.dirname(viewPath));
+
+
+var p = new Promise(function(res, rej)
+{
+    ejs.renderFile(path.join(templatePath, "index.html"), {rootid:rootid, date:date/*title:navititle, left:navileft, right:naviright*/}, function(err, html)
+    {
+        if(err)
+        {
+            rej(err);
+            return ;
+        }
+
+        fs.writeFileSync(htmlPath, html, "utf-8");
+        res();
+    });
+})
+.then(function()
+{
+    fsUtil.cpSync(path.join(templatePath, "index.js"), jsPath);
+})
+.catch(function(err)
+{
+    if(fs.existsSync(htmlPath))
+    {
+        fs.unlinkSync(htmlPath);
+    }
+    if(fs.existsSync(jsPath))
+    {
+        fs.unlinkSync(jsPath);
+    }
+
+    console.log(chalk.red("/********************************/"));
+    console.log(err);
+});
+
+
+
+
+
+
+

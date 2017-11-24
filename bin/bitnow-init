@@ -1,0 +1,235 @@
+#!/usr/bin/env node
+
+var program  = require("commander");
+var chalk    = require("chalk");
+
+var fs       = require("fs");
+var path     = require("path");
+
+var fsUtil   = require("../lib/fsUtil");
+var cpUtil   = require("../lib/cpUtil");
+
+var ghdownload = require("download-git-repo");
+
+// usage
+program.usage("<project-name> [template-name|git-repo]")
+    .option("-c, --clone", "use git clone");
+
+// help
+program.on("--help", function()
+{
+    console.log("");
+    console.log("  Examples:");
+    console.log("");
+    console.log(chalk.gray("    # Create a project from defult template named \"spa\""));
+    console.log("    $ bitnow-init demo");
+    console.log("");
+    console.log(chalk.gray("    # Create a project from template named \"web\""));
+    console.log("    $ bitnow-init demo web");
+    console.log("");
+    console.log(chalk.gray("    # Create a project from template in \"BuildItNow/BIN-SPA-HELLOWORD\""));
+    console.log("    $ bitnow-init demo BuildItNow/BIN-SPA-HELLOWORD");
+    console.log("");
+});
+
+program.parse(process.argv);
+
+var args = program.args;
+
+if(args.length === 0)
+{
+    program.help();
+
+    return ;
+}
+
+var workPath        = process.cwd();
+var projectName     = args[0];
+var projectPath     = path.resolve(projectName);
+var templateName    = args[1] || "spa";
+var templateGitUrl  = null;
+var gitClone        = program.clone;
+
+if(templateName.startsWith("https://") || templateName.startsWith("http://") || templateName.endsWith(".git"))
+{
+    templateGitUrl  = templateName;
+    templateName    = null;
+}
+
+// Create project dir
+
+var p = new Promise(function(res, rej)
+{
+    if(fs.existsSync(projectPath))
+    {
+        console.log(chalk.red("Project \""+projectName+"\" has exists"));;
+
+        rej();
+
+        return ;
+    }
+
+    fs.mkdirSync(projectPath);
+
+    process.chdir(projectPath);
+
+    res();
+})
+.then(function()
+{
+    console.log(chalk.green("1/4")+" download template list");
+    if(!templateGitUrl)
+    {
+        // get the template list config
+        return require("../lib/templateList").get();
+    }
+})
+.then(function(template2url)
+{
+    if(templateName)
+    {
+        var templateConfig = template2url[templateName];
+        
+        if(!templateConfig)
+        {
+            console.log(chark.red("There is no template named \""+templateName+"\", you can use \"bitnow-list\" to show supported templates"));
+        
+            return Promise.reject(new Error("Can't find template"));
+        }
+
+        templateGitUrl = templateConfig.url;
+    }
+
+    return templateGitUrl;
+})
+.then(function()
+{
+    console.log(chalk.green("2/4")+" download template project");
+    console.log(chalk.gray("  "+templateGitUrl));
+    
+    // Clone the template project
+    var gitDir = path.resolve("./__templateGit");
+    var p = new Promise(function(res, rej)
+    {
+        var gh = ghdownload(templateGitUrl, gitDir, function(err)
+        {
+            err ? rej(err) : res();
+        });
+
+        if(gh && gh.on)
+        {
+            gh.on("end", function()
+            {
+                res();
+            });
+
+            gh.on("error", function(err)
+            {
+                rej(err)
+            });
+        }
+    }).then(function()
+    {
+        var glob = require("glob");
+        var paths = glob.sync("**", {cwd:gitDir});
+
+        for(var i=0,i_sz=paths.length; i<i_sz; ++i)
+        {
+            var srcPath = path.resolve(path.join(gitDir, paths[i]));
+            var dstPath = path.resolve(paths[i]);
+            var stats   = fs.statSync(srcPath);
+            if(stats && stats.isDirectory())
+            {
+                fsUtil.mkdirSync(dstPath);
+            }
+            else if(stats)
+            {
+                fs.writeFileSync(dstPath, fs.readFileSync(srcPath, "binary"), "binary");
+            }
+        }
+
+        fsUtil.rmdirSync(gitDir);
+    });
+
+    return p;
+})
+.then(function()
+{
+    console.log(chalk.green("3/4")+" download BIN framework");
+    
+    if(fs.existsSync(path.resolve("client/bin")))
+    {
+        return ;
+    }
+
+    var binGitUrl = require("../package").binFrameworkUrl || "BuildItNow/BIN";
+        
+    console.log(chalk.gray("  "+binGitUrl));
+
+    // Clone the template project
+    var gitDir = path.resolve("./__binGit");
+    var p = new Promise(function(res, rej)
+    {
+        var gh = ghdownload(binGitUrl, gitDir, function(err)
+        {
+            err ? rej(err) : res();
+        });
+
+        if(gh && gh.on)
+        {
+            gh.on("end", function()
+            {
+                res();
+            });
+
+            gh.on("error", function(err)
+            {
+                rej(err);
+            });
+        }
+    }).then(function()
+    {
+        fsUtil.cpSync(path.join(gitDir, "bin"), path.join(projectPath, "client/bin"));
+
+        if(!fs.existsSync(path.join(gitDir, "client/index.html")))
+        {
+            fsUtil.cpSync(path.join(gitDir, "index-spa.html"), path.join(projectPath, "client/index-spa.html"));
+            fsUtil.cpSync(path.join(gitDir, "index-web.html"), path.join(projectPath, "client/index-web.html"));
+        }
+
+        fsUtil.rmdirSync(gitDir);
+    });
+
+    return p;
+})
+.then(function()
+{
+    // Npm install
+    console.log(chalk.green("4/4")+" install dependencies");
+    
+    cpUtil.execSync("npm install");
+})
+.then(function()
+{
+    process.chdir(workPath);
+
+    console.log("");
+    console.log(chalk.green("Welcome!"));
+    console.log(chalk.gray("  Start project for development:"));
+    console.log("    $ npm start");
+    console.log(chalk.gray("  Build project for production:"));
+    console.log("    $ npm run build");
+    console.log(chalk.gray("  Auto generate a page, please check:"));
+    console.log("    $ bitnow-view create");
+})
+.catch(function(err)
+{
+    if(!err)
+    {
+        return ;
+    }
+    console.log(chalk.red("/********************************/"));
+    console.log(err);
+    process.chdir(workPath);
+    fsUtil.rmdirSync(projectPath);
+});

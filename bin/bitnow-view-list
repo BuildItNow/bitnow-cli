@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+var chalk    = require("chalk");
+var fs       = require("fs");
+var path     = require("path");
+
+console.log()
+process.on("exit", () => {
+  console.log()
+});
+
+var templateRootPath = path.resolve(path.join(__dirname, "../template/view"));
+
+if(!fs.existsSync(templateRootPath))
+{
+    return ;
+}
+
+console.log("  Available templates:");
+console.log("");
+
+var templates = fs.readdirSync(templateRootPath);
+
+for(var i=0,i_sz=templates.length; i<i_sz; ++i)
+{
+	var name = templates[i];
+	var desc = "";
+	var descPath = path.join(templateRootPath, name, "desc");
+	if(fs.existsSync(descPath))
+	{
+		desc = fs.readFileSync(descPath, "utf-8");
+	}
+
+    var msg = 
+    '  ' + chalk.yellow('★') +
+    '  ' + chalk.blue(name) +
+    ' - ' + desc;
+
+    console.log(msg);
+}

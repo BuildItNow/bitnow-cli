@@ -1,0 +1,75 @@
+{
+  "_from": "bitnow-cli",
+  "_id": "bitnow-cli@1.0.0",
+  "_inBundle": false,
+  "_integrity": "sha512-1Tf2zMHLzWsVc5xYuBYHFbQwJQKHlgyLCtRYufHRJEVCZsOdnk8FDe5TOsOt38oQYOYZ95X2MruEboTX2VodiQ==",
+  "_location": "/bitnow-cli",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "bitnow-cli",
+    "name": "bitnow-cli",
+    "escapedName": "bitnow-cli",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/bitnow-cli/-/bitnow-cli-1.0.0.tgz",
+  "_shasum": "08dc05a953ce09616108ecd5956040ceb17d105f",
+  "_spec": "bitnow-cli",
+  "_where": "/Users/checker/work/2017/bitnow-cli",
+  "author": {
+    "name": "Yang G"
+  },
+  "bin": {
+    "bitnow": "bin/bitnow",
+    "bitnow-init": "bin/bitnow-init",
+    "bitnow-list": "bin/bitnow-list",
+    "bitnow-update": "bin/bitnow-update",
+    "bitnow-view": "bin/bitnow-view"
+  },
+  "binFrameworkUrl": "BuildItNow/BIN",
+  "bugs": {
+    "url": "https://github.com/BuildItNow/bitnow-cli/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "async": "^2.4.0",
+    "chalk": "^2.1.0",
+    "commander": "^2.9.0",
+    "ejs": "^2.5.7",
+    "download-git-repo": "^1.0.1",
+    "glob": "^7.1.2",
+    "ora": "^1.3.0"
+  },
+  "deprecated": false,
+  "description": "A simple CLI for scaffolding BIN projects.",
+  "devDependencies": {
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "homepage": "https://github.com/BuildItNow/bitnow-cli",
+  "keywords": [
+    "bin",
+    "bitnow",
+    "cli",
+    "spa"
+  ],
+  "license": "MIT",
+  "name": "bitnow-cli",
+  "preferGlobal": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BuildItNow/bitnow-cli.git"
+  },
+  "scripts": {
+    "bitnow": "node ./bin/bitnow.js"
+  },
+  "templateListUrl": "http://101.200.215.114/apps/templates.json",
+  "version": "1.0.1"
+}

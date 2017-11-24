@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+var program  = require("commander");
+var chalk    = require("chalk");
+
+var fs       = require("fs");
+var path     = require("path");
+
+var fsUtil   = require("../lib/fsUtil");
+var cpUtil   = require("../lib/cpUtil");
+
+var ghdownload = require("download-git-repo");
+
+console.log()
+process.on("exit", () => {
+  console.log()
+});
+
+program.parse(process.argv);
+
+if(!fs.existsSync("./client") || !fs.statSync("./client").isDirectory())
+{
+    console.log(chalk.red("Current directory is not a valid project"));
+
+    return ;
+}
+
+var binGitUrl = require("../package").binFrameworkUrl || "BuildItNow/BIN";
+            
+// Clone the template project
+var gitDir = path.resolve("./__binGit");
+
+var p = new Promise(function(res, rej)
+{
+    console.log(chalk.green("1/2")+" download BIN framework");
+    console.log(chalk.gray("  "+binGitUrl));
+
+    var gh = ghdownload(binGitUrl, gitDir, function(err)
+    {
+        err ? rej(err) : res();
+    });
+
+    if(gh && gh.on)
+    {
+        gh.on("end", function()
+        {
+            res();
+        });
+
+        gh.on("error", function(err)
+        {
+            rej(err);
+        });
+    }
+})
+.then(function()
+{
+    console.log(chalk.green("2/2")+" copy BIN framework");
+
+    fsUtil.cpSync(path.join(gitDir, "bin"), path.resolve("./client/bin"));
+    fsUtil.rmdirSync(gitDir);
+})
+.then(function()
+{
+    console.log("");
+    console.log(chalk.green("Update complete!"));
+})
+.catch(function(error)
+{
+    console.log(chalk.red("/********************************/"));
+    console.log(err);
+});

@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+require("commander").usage("<command> [options]")
+    .command("create", "create a new view from a template")
+    .command("list", "list available templates")
+    .parse(process.argv);

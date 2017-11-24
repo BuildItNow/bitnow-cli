@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+
+var chalk    = require("chalk");
+
+console.log()
+process.on("exit", () => {
+  console.log()
+});
+
+require("../lib/templateList").get().then(function(template2url)
+{
+    console.log("  Available templates:");
+    console.log("");
+    for(var key in template2url)
+    {
+        var temp = template2url[key];
+        var desc = 
+        '  ' + chalk.yellow('★') +
+        '  ' + chalk.blue(key) +
+        ' - ' + temp.description;
+
+        console.log(desc);
+    }
+});
