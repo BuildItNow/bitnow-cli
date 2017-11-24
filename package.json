@@ -71,5 +71,5 @@
     "bitnow": "node ./bin/bitnow.js"
   },
   "templateListUrl": "http://101.200.215.114/apps/templates.json",
-  "version": "1.0.1"
+  "version": "1.0.4"
 }

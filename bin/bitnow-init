@@ -191,7 +191,7 @@ var p = new Promise(function(res, rej)
     {
         fsUtil.cpSync(path.join(gitDir, "bin"), path.join(projectPath, "client/bin"));
 
-        if(!fs.existsSync(path.join(gitDir, "client/index.html")))
+        if(!fs.existsSync(path.join(projectPath, "client/index.html")))
         {
             fsUtil.cpSync(path.join(gitDir, "index-spa.html"), path.join(projectPath, "client/index-spa.html"));
             fsUtil.cpSync(path.join(gitDir, "index-web.html"), path.join(projectPath, "client/index-web.html"));
@@ -219,8 +219,10 @@ var p = new Promise(function(res, rej)
     console.log("    $ npm start");
     console.log(chalk.gray("  Build project for production:"));
     console.log("    $ npm run build");
+    console.log(chalk.gray("  Build project and then start project:"));
+    console.log("    $ npm run build-start");
     console.log(chalk.gray("  Auto generate a page, please check:"));
-    console.log("    $ bitnow-view create");
+    console.log("    $ bitnow view create");
 })
 .catch(function(err)
 {
