@@ -223,6 +223,12 @@ var p = new Promise(function(res, rej)
     console.log("    $ npm run build-start");
     console.log(chalk.gray("  Auto generate a page, please check:"));
     console.log("    $ bitnow view create");
+    console.log("");
+
+    console.log(chalk.gray("  \"build\" and \"build-start\" need requirejs, gulp installed in global. Please:"));
+    console.log("    $ npm install -g requirejs");
+    console.log("    $ npm install -g gulp");
+    console.log("");
 })
 .catch(function(err)
 {
